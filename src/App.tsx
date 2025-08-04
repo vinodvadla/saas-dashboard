@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/index";
 import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "@/components/them-provider";
+import Auth from "./pages/Auth";
 
 const queryClient = new QueryClient();
 
@@ -18,6 +19,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
+            <Route path='/login' element={<Auth/>}/>
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
