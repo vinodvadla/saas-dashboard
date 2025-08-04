@@ -1,5 +1,6 @@
 import { BarChart3, TrendingUp, Users, ShoppingCart, DollarSign } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import ScrollProgress from "@/components/eldoraui/scrollprogress";
 
 const stats = [
   {
@@ -39,6 +40,7 @@ const stats = [
 export function DashboardContent() {
   return (
     <div className="space-y-6">
+        <ScrollProgress className="top-[0px] bg-gray-300 h-[1px]" />
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -96,6 +98,8 @@ export function DashboardContent() {
           </CardContent>
         </Card>
       </div>
+
+    
 
       {/* Additional Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
