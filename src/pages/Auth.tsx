@@ -1,25 +1,21 @@
+
 import { AuthCard } from "@/components/AuthCard";
 import { DashboardPreview } from "@/components/DashboardPreview";
 
 const Auth = () => {
   return (
-    <div className="h-screen w-full flex">
-      {/* Left Side - 50% Width - Green Background with Dashboard Preview */}
-      <div className="w-1/2 relative">
-        {/* Green Gradient Background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-zellbee-green via-zellbee-green to-zellbee-green-dark"></div>
-        
-        {/* Dashboard Preview Content */}
-        <div className="relative z-10 h-full">
+    <div className="min-h-screen flex flex-col md:flex-row bg-background text-foreground">
+      {/* Left side (Dashboard Preview) - Hidden on small screens */}
+      <div className="hidden md:flex w-1/2 relative">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-secondary" />
+        <div className="relative z-10 w-full h-full">
           <DashboardPreview />
         </div>
       </div>
 
-      {/* Right Side - 50% Width - Full Height - White Background with Auth Form */}
-      <div className="w-1/2 bg-white h-full flex items-center justify-center">
-        <div className="w-full max-w-lg px-8">
-          <AuthCard />
-        </div>
+      {/* Right side (AuthCard) */}
+      <div className="flex flex-1 items-center justify-center px-6 py-12">
+        <AuthCard />
       </div>
     </div>
   );

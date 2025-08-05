@@ -21,7 +21,7 @@ export const DashboardPreview = () => {
               </div>
             </div>
           </div>
-          
+
           {/* Secondary overlay card */}
           <div className="absolute top-12 -right-4 bg-white rounded-xl shadow-lg p-4 transform rotate-3 opacity-75">
             <div className="bg-gray-50 rounded-lg h-32 w-48 flex items-center justify-center">
