@@ -1,31 +1,23 @@
 import { Toaster } from "@/components/ui/toaster";
-// import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/index";
-import NotFound from "./pages/NotFound";
 import { ThemeProvider } from "@/components/them-provider";
-import Auth from "./pages/Auth";
+import { Provider } from "react-redux";
+import { store } from "./redux/store";
+import Router from "./routes/Router";
 
 const queryClient = new QueryClient();
-
 const App = () => (
-  <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        {/* <Sonner /> */}
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path='/login' element={<Auth/>}/>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ThemeProvider>
+  <Provider store={store}>
+    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
+  </Provider>
 );
 
 export default App;

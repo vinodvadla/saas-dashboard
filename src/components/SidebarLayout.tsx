@@ -11,10 +11,9 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
+      <div className="min-h-screen flex w-full bg-sidebar">
         <AppSidebar />
-        
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col rounded-xl border-1 mx-2 my-3 overflow-hidden">
           {/* Header */}
           <header className="h-16 border-b bg-background flex items-center justify-between px-6">
             <div className="flex items-center gap-4">
@@ -41,7 +40,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                 <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
                   <span className="text-xs font-medium text-primary-foreground">AS</span>
                 </div>
-                <span className="text-sm font-medium">Ailee Studio</span>
+                {/* <span className="text-sm font-medium">Ailee Studio</span> */}
               </div>
             </div>
           </header>

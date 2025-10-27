@@ -1,55 +1,179 @@
-import { BarChart3, TrendingUp, Users, ShoppingCart, DollarSign } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect, useState } from "react";
+import {
+  Users,
+  BatteryCharging,
+  Clock,
+  PlusCircle,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import ScrollProgress from "@/components/eldoraui/scrollprogress";
+import { cn } from "@/lib/utils";
 
-const stats = [
+// Define types based on Prisma models
+interface Client {
+  id: number;
+  email: string;
+  phone: string;
+  amc_start: string;
+  amc_end: string;
+  createdAt: string;
+  updatedAt: string;
+  status: string;
+  chargers: Charger[];
+  token: string;
+  domain: string;
+}
+
+interface Charger {
+  id: number;
+  charger_id: string;
+  clientId: number;
+  client: Client;
+  createdAt: string;
+  updatedAt: string;
+  amc_start: string;
+  amc_end: string;
+  status: string;
+}
+
+// Mock data for demonstration (replace with actual API calls)
+const mockClients: Client[] = [
   {
-    title: "Revenue",
-    value: "$1,200",
-    change: "+12%",
-    period: "vs last month",
-    icon: DollarSign,
-    positive: true
+    id: 1,
+    email: "client1@example.com",
+    phone: "1234567890",
+    amc_start: "2025-01-01T00:00:00Z",
+    amc_end: "2025-12-31T23:59:59Z",
+    createdAt: "2025-01-01T00:00:00Z",
+    updatedAt: "2025-01-01T00:00:00Z",
+    status: "ACTIVE",
+    chargers: [],
+    token: "token1",
+    domain: "client1.com",
   },
   {
-    title: "Purchases",
-    value: "34",
-    change: "+8%", 
-    period: "vs last month",
-    icon: ShoppingCart,
-    positive: true
+    id: 2,
+    email: "client2@example.com",
+    phone: "0987654321",
+    amc_start: "2025-06-01T00:00:00Z",
+    amc_end: "2025-11-30T23:59:59Z",
+    createdAt: "2025-06-01T00:00:00Z",
+    updatedAt: "2025-06-01T00:00:00Z",
+    status: "ACTIVE",
+    chargers: [],
+    token: "token2",
+    domain: "client2.com",
+  },
+];
+
+const mockChargers: Charger[] = [
+  {
+    id: 1,
+    charger_id: "CHR001",
+    clientId: 1,
+    client: mockClients[0],
+    createdAt: "2025-09-01T00:00:00Z",
+    updatedAt: "2025-09-01T00:00:00Z",
+    amc_start: "2025-09-01T00:00:00Z",
+    amc_end: "2025-11-30T23:59:59Z",
+    status: "ACTIVE",
   },
   {
-    title: "Visits",
-    value: "80",
-    change: "-2%",
-    period: "vs last month", 
-    icon: Users,
-    positive: false
+    id: 2,
+    charger_id: "CHR002",
+    clientId: 2,
+    client: mockClients[1],
+    createdAt: "2025-10-15T00:00:00Z",
+    updatedAt: "2025-10-15T00:00:00Z",
+    amc_start: "2025-10-15T00:00:00Z",
+    amc_end: "2026-10-14T23:59:59Z",
+    status: "ACTIVE",
   },
-  {
-    title: "Conversions",
-    value: "45%",
-    change: "+15%",
-    period: "vs last month",
-    icon: TrendingUp,
-    positive: true
-  }
-]
+];
 
 export function DashboardContent() {
+  const [clients, setClients] = useState<Client[]>([]);
+  const [chargers, setChargers] = useState<Charger[]>([]);
+
+  // Mock API fetch (replace with actual API calls)
+  useEffect(() => {
+    // Simulate fetching data
+    setClients(mockClients);
+    setChargers(mockChargers);
+  }, []);
+
+  // Calculate stats
+  const totalClients = clients.length;
+  const totalChargers = chargers.length;
+  const today = new Date();
+  const thirtyDaysFromNow = new Date(today);
+  thirtyDaysFromNow.setDate(today.getDate() + 30);
+
+  const expiringChargers = chargers.filter(
+    (charger) =>
+      new Date(charger.amc_end) <= thirtyDaysFromNow &&
+      new Date(charger.amc_end) >= today
+  ).length;
+
+  const newChargers = chargers.filter(
+    (charger) =>
+      new Date(charger.createdAt) >=
+      new Date(today.setMonth(today.getMonth() - 1))
+  ).length;
+
+  const expiringClients = clients.filter(
+    (client) =>
+      new Date(client.amc_end) <= thirtyDaysFromNow &&
+      new Date(client.amc_end) >= today
+  );
+
+  const stats = [
+    {
+      title: "Total Clients",
+      value: totalClients.toString(),
+      icon: Users,
+    },
+    {
+      title: "Total Chargers",
+      value: totalChargers.toString(),
+      icon: BatteryCharging,
+    },
+    {
+      title: "Expiring Chargers",
+      value: expiringChargers.toString(),
+      icon: Clock,
+    },
+    {
+      title: "New Chargers",
+      value: newChargers.toString(),
+      icon: PlusCircle,
+    },
+  ];
+
   return (
     <div className="space-y-6">
-        <ScrollProgress className="top-[0px] bg-gray-300 h-[1px]" />
+      <ScrollProgress className="top-[0px] bg-gray-300 h-[1px]" />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back to your store analytics</p>
+          <p className="text-muted-foreground">Welcome back to your AMC analytics</p>
         </div>
-        
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>📅 28 Oct - 20 Nov</span>
+          <span>{new Date().toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })}</span>
         </div>
       </div>
 
@@ -65,89 +189,131 @@ export function DashboardContent() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.value}</div>
-              <div className="flex items-center text-xs text-muted-foreground">
-                <span className={`font-medium ${stat.positive ? 'text-green-600' : 'text-red-600'}`}>
-                  {stat.change}
-                </span>
-                <span className="ml-1">{stat.period}</span>
-              </div>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Charts Section */}
+      {/* Expiring Clients and Chargers Tables */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="col-span-1 lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Revenue | Orders
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] flex items-center justify-center bg-muted/20 rounded-lg">
-              <div className="text-center">
-                <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">Chart visualization would go here</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Connect your analytics to see real-time data
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-    
-
-      {/* Additional Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Expiring Clients Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Top Region</CardTitle>
+            <CardTitle>Expiring Clients</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-[200px] flex items-center justify-center bg-muted/20 rounded-lg">
-              <div className="text-center">
-                <Users className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-sm text-muted-foreground">Regional data visualization</p>
-              </div>
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>AMC End</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {expiringClients.length > 0 ? (
+                  expiringClients.map((client) => (
+                    <TableRow key={client.id}>
+                      <TableCell>{client.email}</TableCell>
+                      <TableCell>{client.phone}</TableCell>
+                      <TableCell>
+                        {new Date(client.amc_end).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={cn(
+                            "text-xs px-2 py-1 rounded-full",
+                            client.status === "ACTIVE"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                          )}
+                        >
+                          {client.status}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground">
+                      No expiring clients
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
 
+        {/* Expiring Chargers Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Top Products</CardTitle>
+            <CardTitle>Expiring Chargers</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {[
-                { name: "Joy Stick", status: "Completed", price: "$18.00", date: "Jan 23, 2021" },
-                { name: "Junkfood", status: "Not Paid", price: "$12.00", date: "Jan 27, 2021" }
-              ].map((product, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
-                  <div>
-                    <p className="font-medium">{product.name}</p>
-                    <p className="text-sm text-muted-foreground">{product.date}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-medium">{product.price}</p>
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      product.status === "Completed" 
-                        ? "bg-green-100 text-green-700" 
-                        : "bg-orange-100 text-orange-700"
-                    }`}>
-                      {product.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Charger ID</TableHead>
+                  <TableHead>Client Email</TableHead>
+                  <TableHead>AMC End</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {chargers.filter(
+                  (charger) =>
+                    new Date(charger.amc_end) <= thirtyDaysFromNow &&
+                    new Date(charger.amc_end) >= today
+                ).length > 0 ? (
+                  chargers
+                    .filter(
+                      (charger) =>
+                        new Date(charger.amc_end) <= thirtyDaysFromNow &&
+                        new Date(charger.amc_end) >= today
+                    )
+                    .map((charger) => (
+                      <TableRow key={charger.id}>
+                        <TableCell>{charger.charger_id}</TableCell>
+                        <TableCell>{charger.client.email}</TableCell>
+                        <TableCell>
+                          {new Date(charger.amc_end).toLocaleDateString("en-US", {
+                            month: "short",
+                            day: "numeric",
+                            year: "numeric",
+                          })}
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={cn(
+                              "text-xs px-2 py-1 rounded-full",
+                              charger.status === "ACTIVE"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-red-100 text-red-700"
+                            )}
+                          >
+                            {charger.status}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center text-muted-foreground">
+                      No expiring chargers
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       </div>
     </div>
-  )
+  );
 }
