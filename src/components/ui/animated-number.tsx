@@ -1,5 +1,5 @@
 import { useEffect } from "react"
-import { MotionValue, motion, useSpring, useTransform } from "motion/react"
+import { MotionValue, motion, useSpring, useTransform } from "framer-motion"
 
 interface AnimatedNumberProps {
   value: number

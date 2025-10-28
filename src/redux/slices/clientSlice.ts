@@ -22,13 +22,16 @@ export interface ClientInterface {
   amc_charger_count: number;
   chargers?: Charger[];
   totalChargers: number;
+  activeChargers?: number;
+  expiringThisMonth?: number;
+  addedThisMonth?: number;
 }
 
 export interface Charger {
   id: number;
   charger_id: string;
   clientId: number;
-  client: ClientInterface; // assuming you have a Client interface
+  client: ClientInterface;
   createdAt: Date;
   updatedAt: Date;
   amc_start: Date;
@@ -64,30 +67,6 @@ interface InitialState {
   search: string;
   status: string;
 }
-
-const initialState: InitialState = {
-  clients: [],
-  dashBoardData: {
-    totalClients: 0,
-    totalChargers: 0,
-    expiringChargers: 0,
-    newChargers: 0,
-  },
-  client: null,
-  expiringChargersData: [],
-  expiringClientsData: [],
-  dashboardLoading: false,
-  loading: false,
-  error: null,
-  pagination: {
-    currentPage: 1,
-    totalPages: 1,
-    totalClients: 0,
-    limit: 10,
-  },
-  search: "",
-  status: "All",
-};
 
 export const fetchDashboardData = createAsyncThunk(
   "/dashboard-data",
@@ -164,6 +143,31 @@ export const getClientById = createAsyncThunk(
     }
   }
 );
+
+const initialState: InitialState = {
+  clients: [],
+  dashBoardData: {
+    totalClients: 0,
+    totalChargers: 0,
+    expiringChargers: 0,
+    newChargers: 0,
+  },
+  client: null,
+  expiringChargersData: [],
+  expiringClientsData: [],
+  dashboardLoading: false,
+  loading: false,
+  error: null,
+  pagination: {
+    currentPage: 1,
+    totalPages: 1,
+    totalClients: 0,
+    limit: 10,
+  },
+  search: "",
+  status: "All",
+};
+
 const clientSlice = createSlice({
   name: "clientSlice",
   initialState: initialState,
@@ -233,6 +237,33 @@ const clientSlice = createSlice({
         }
       )
       .addCase(deleteClient.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
+
+    // Get Client by ID
+    builder
+      .addCase(getClientById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.client = null;
+      })
+      .addCase(getClientById.fulfilled, (state, action) => {
+        state.loading = false;
+        const data = action.payload;
+        if (data.client) {
+          state.client = {
+            ...data.client,
+            totalChargers: data.overview?.chargers?.total || 0,
+            activeChargers: data.overview?.chargers?.active || 0,
+            expiringThisMonth: data.overview?.chargers?.expiringThisMonth || 0,
+            addedThisMonth: data.overview?.chargers?.addedThisMonth || 0,
+          };
+        } else {
+          state.client = data;
+        }
+      })
+      .addCase(getClientById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

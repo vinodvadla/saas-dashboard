@@ -110,6 +110,37 @@ export const updateCharger = createAsyncThunk(
   }
 );
 
+export const getChargersByClientId = createAsyncThunk(
+  "chargers/client/:id",
+  async (
+    {
+      clientId,
+      page = 1,
+      limit = 10,
+      search = "",
+      status = "All",
+    }: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      status: string;
+      clientId: number;
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      const res = await instance.get("/chargers/client/" + clientId, {
+        params: { page, limit, search, status },
+      });
+      return res.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch chargers"
+      );
+    }
+  }
+);
+
 const chargerSlice = createSlice({
   name: "chargers",
   initialState,
@@ -173,6 +204,20 @@ const chargerSlice = createSlice({
       state.loading = false;
       state.error = action.payload as string;
     });
+
+    builder
+      .addCase(getChargersByClientId.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getChargersByClientId.fulfilled, (state, action) => {
+        state.loading = false;
+        state.chargers = action.payload.data.chargers;
+        state.pagination = action.payload.data.pagination;
+      })
+      .addCase(getChargersByClientId.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      });
   },
 });
 

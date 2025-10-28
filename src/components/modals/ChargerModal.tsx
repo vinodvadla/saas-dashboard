@@ -124,8 +124,9 @@ const UpdateChargerModal: React.FC<UpdateChargerModalProps> = ({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="PENDING">Pending</SelectItem>
                 <SelectItem value="ACTIVE">Active</SelectItem>
-                <SelectItem value="INACTIVE">Inactive</SelectItem>
+                <SelectItem value="EXPIRED">Expired</SelectItem>
               </SelectContent>
             </Select>
           </div>

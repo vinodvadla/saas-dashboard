@@ -1,16 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BatteryCharging, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { BatteryCharging } from "lucide-react";
 import ScrollProgress from "@/components/eldoraui/scrollprogress";
 import { DashboardLayout } from "@/components/SidebarLayout";
 import { Input } from "@/components/ui/input";
@@ -29,158 +20,84 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-
-interface Client {
-  id: number;
-  email: string;
-  phone: string;
-  amc_start: string;
-  amc_end: string;
-  createdAt: string;
-  updatedAt: string;
-  status: string;
-  chargers: { id: number }[];
-  token: string;
-  domain: string;
-}
-
-interface Charger {
-  id: number;
-  charger_id: string;
-  clientId: number;
-  createdAt: string;
-  updatedAt: string;
-  amc_start: string;
-  amc_end: string;
-  status: string;
-}
-
-// Mock data (replace with actual API calls)
-const mockClients: Client[] = [
-  {
-    id: 1,
-    email: "client1@example.com",
-    phone: "123-456-7890",
-    amc_start: "2025-01-01T00:00:00Z",
-    amc_end: "2025-12-31T23:59:59Z",
-    createdAt: "2025-01-01T00:00:00Z",
-    updatedAt: "2025-01-01T00:00:00Z",
-    status: "ACTIVE",
-    chargers: [{ id: 1 }, { id: 2 }],
-    token: "token123",
-    domain: "client1.com",
-  },
-  {
-    id: 2,
-    email: "client2@example.com",
-    phone: "098-765-4321",
-    amc_start: "2025-06-01T00:00:00Z",
-    amc_end: "2025-11-30T23:59:59Z",
-    createdAt: "2025-06-01T00:00:00Z",
-    updatedAt: "2025-06-01T00:00:00Z",
-    status: "INACTIVE",
-    chargers: [{ id: 3 }],
-    token: "token456",
-    domain: "client2.com",
-  },
-  {
-    id: 3,
-    email: "client3@example.com",
-    phone: "555-555-5555",
-    amc_start: "2025-03-01T00:00:00Z",
-    amc_end: "2026-02-28T23:59:59Z",
-    createdAt: "2025-03-01T00:00:00Z",
-    updatedAt: "2025-03-01T00:00:00Z",
-    status: "ACTIVE",
-    chargers: [],
-    token: "token789",
-    domain: "client3.com",
-  },
-];
-
-const mockChargers: Charger[] = [
-  {
-    id: 1,
-    charger_id: "CHR001",
-    clientId: 1,
-    createdAt: "2025-01-15T00:00:00Z",
-    updatedAt: "2025-06-15T00:00:00Z",
-    amc_start: "2025-01-15T00:00:00Z",
-    amc_end: "2025-10-14T23:59:59Z",
-    status: "ACTIVE",
-  },
-  {
-    id: 2,
-    charger_id: "CHR002",
-    clientId: 1,
-    createdAt: "2025-10-01T00:00:00Z",
-    updatedAt: "2025-07-01T00:00:00Z",
-    amc_start: "2025-02-01T00:00:00Z",
-    amc_end: "2025-10-31T23:59:59Z",
-    status: "INACTIVE",
-  },
-  {
-    id: 3,
-    charger_id: "CHR003",
-    clientId: 2,
-    createdAt: "2025-03-10T00:00:00Z",
-    updatedAt: "2025-08-10T00:00:00Z",
-    amc_start: "2025-03-10T00:00:00Z",
-    amc_end: "2026-03-09T23:59:59Z",
-    status: "ACTIVE",
-  },
-];
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/redux/store";
+import { getClientById } from "@/redux/slices/clientSlice";
+import {
+  getChargersByClientId,
+  setPage,
+  setSearch,
+  setStatus,
+  updateCharger,
+  type Charger,
+} from "@/redux/slices/chargersSlice";
+import {
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+  Table,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import UpdateChargerModal from "@/components/modals/ChargerModal";
+import toast from "react-hot-toast";
 
 const ClientPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const clientId = parseInt(id || "0");
-  const [client, setClient] = useState<Client | null>(null);
-  const [chargers, setChargers] = useState<Charger[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("All");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingCharger, setEditingCharger] = useState<Charger | null>(null);
-  0;
-  const [chargerId, setChargerId] = useState("");
-  const [amcStart, setAmcStart] = useState("");
-  const [amcEnd, setAmcEnd] = useState("");
-  const [status, setStatus] = useState("ACTIVE");
 
+  const dispatch = useDispatch<AppDispatch>();
+
+  const { client } = useSelector((state: RootState) => state.client);
+  const { chargers, pagination, search, status } = useSelector(
+    (state: RootState) => state.charger
+  );
+
+  const handleEdit = (charger: Charger) => {
+    setEditingCharger(charger);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdate = async (data: Partial<Charger>) => {
+    if (editingCharger) {
+      dispatch(updateCharger({ id: editingCharger.id, data: data }))
+        .unwrap()
+        .then((res) => {
+          console.log("res", res);
+          toast.success("Charger updated successfully !");
+        })
+        .catch((err) => {
+          toast.error(err);
+        });
+    }
+  };
   useEffect(() => {
-    const foundClient = mockClients.find((c) => c.id === clientId);
-    setClient(foundClient || null);
-    const clientChargers = mockChargers.filter((c) => c.clientId === clientId);
-    setChargers(clientChargers);
+    dispatch(getClientById({ id: clientId }));
   }, [clientId]);
 
   useEffect(() => {
-    if (editingCharger) {
-      setChargerId(editingCharger.charger_id);
-      setAmcStart(editingCharger.amc_start.slice(0, 10));
-      setAmcEnd(editingCharger.amc_end.slice(0, 10));
-      setStatus(editingCharger.status);
-    } else {
-      setChargerId("");
-      setAmcStart("");
-      setAmcEnd("");
-      setStatus("ACTIVE");
-    }
-  }, [editingCharger]);
+    const handler = setTimeout(() => {
+      dispatch(
+        getChargersByClientId({
+          page: pagination.page,
+          limit: 10,
+          search,
+          status,
+          clientId,
+        })
+      );
+    }, 500);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [dispatch, pagination.page, search, status, clientId]);
 
-  // Format date for display
   const formatDate = (date: string): string => {
     return new Date(date).toLocaleDateString("en-US", {
       month: "short",
@@ -189,99 +106,12 @@ const ClientPage: React.FC = () => {
     });
   };
 
-  // Calculate metrics
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
-
-  const totalChargers = chargers.length;
-
-  const expiringThisMonth = chargers.filter((charger) => {
-    const endDate = new Date(charger.amc_end);
-    return (
-      endDate.getMonth() === currentMonth &&
-      endDate.getFullYear() === currentYear
-    );
-  }).length;
-
-  const addedThisMonth = chargers.filter((charger) => {
-    const createDate = new Date(charger.createdAt);
-    return (
-      createDate.getMonth() === currentMonth &&
-      createDate.getFullYear() === currentYear
-    );
-  }).length;
-
-  const activeChargers = chargers.filter(
-    (charger) => charger.status === "ACTIVE"
-  ).length;
-
-  // Client AMC status
   const clientAmcStatus = client
     ? new Date() >= new Date(client.amc_start) &&
       new Date() <= new Date(client.amc_end)
       ? "Active"
       : "Expired"
     : "";
-
-  // Filter chargers based on search and status
-  const filteredChargers = chargers.filter((charger) => {
-    const matchesStatus =
-      selectedStatus === "All" || charger.status === selectedStatus;
-    const matchesSearch = searchTerm
-      ? charger.charger_id.toLowerCase().includes(searchTerm.toLowerCase())
-      : true;
-    return matchesStatus && matchesSearch;
-  });
-
-  // Pagination calculations
-  const totalPages = Math.ceil(filteredChargers.length / itemsPerPage);
-  const indexOfLast = currentPage * itemsPerPage;
-  const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentChargers = filteredChargers.slice(indexOfFirst, indexOfLast);
-
-  const handlePageChange = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingCharger) {
-      const maxId = Math.max(...chargers.map((c) => c.id), 0);
-      setChargers((prev) => [
-        ...prev,
-        {
-          id: maxId + 1,
-          charger_id: chargerId,
-          clientId,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          amc_start: `${amcStart}T00:00:00Z`,
-          amc_end: `${amcEnd}T00:00:00Z`,
-          status,
-        },
-      ]);
-    } else {
-      setChargers((prev) =>
-        prev.map((c) =>
-          c.id === editingCharger.id
-            ? {
-                ...c,
-                charger_id: chargerId,
-                amc_start: `${amcStart}T00:00:00Z`,
-                amc_end: `${amcEnd}T00:00:00Z`,
-                status,
-                updatedAt: new Date().toISOString(),
-              }
-            : c
-        )
-      );
-    }
-    setDialogOpen(false);
-    setEditingCharger(null);
-  };
 
   if (!client) {
     return (
@@ -326,12 +156,7 @@ const ClientPage: React.FC = () => {
                 <Label className="text-muted-foreground">Domain</Label>
                 <p className="font-medium">{client.domain}</p>
               </div>
-              <div>
-                <Label className="text-muted-foreground">Token</Label>
-                <p className="break-all text-sm text-gray-600">
-                  {client.token}
-                </p>
-              </div>
+
               <div>
                 <Label className="text-muted-foreground">AMC Period</Label>
                 <p className="font-medium">
@@ -359,7 +184,9 @@ const ClientPage: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{totalChargers}</div>
+                  <div className="text-2xl font-bold">
+                    {client.totalChargers}
+                  </div>
                 </CardContent>
               </Card>
 
@@ -370,7 +197,9 @@ const ClientPage: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{activeChargers}</div>
+                  <div className="text-2xl font-bold">
+                    {client.activeChargers}
+                  </div>
                 </CardContent>
               </Card>
 
@@ -381,7 +210,9 @@ const ClientPage: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{expiringThisMonth}</div>
+                  <div className="text-2xl font-bold">
+                    {client.expiringThisMonth}
+                  </div>
                 </CardContent>
               </Card>
 
@@ -392,7 +223,9 @@ const ClientPage: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{addedThisMonth}</div>
+                  <div className="text-2xl font-bold">
+                    {client.addedThisMonth}
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -410,22 +243,28 @@ const ClientPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4">
             <Input
               placeholder="Search by charger ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={search}
+              onChange={(e) => {
+                dispatch(setSearch(e.target.value));
+              }}
               className="flex-1"
             />
-            <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+            <Select
+              value={status}
+              onValueChange={(value) => {
+                dispatch(setStatus(value));
+              }}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="All">All</SelectItem>
                 <SelectItem value="ACTIVE">Active</SelectItem>
-                <SelectItem value="INACTIVE">Inactive</SelectItem>
+                <SelectItem value="EXPIRES">Expired</SelectItem>
               </SelectContent>
             </Select>
           </div>
-
           <Card className="border-border hover:shadow-elegant transition-shadow animate-fade-in">
             <CardHeader>
               <CardTitle>All Chargers</CardTitle>
@@ -449,42 +288,50 @@ const ClientPage: React.FC = () => {
                   </TableHeader>
                   <TableBody>
                     {chargers?.length > 0 ? (
-                      chargers.map((charger) => (
-                        <TableRow
-                          key={charger.id}
-                          className="hover:bg-muted/50 transition-colors"
-                        >
-                          <TableCell>{charger.id}</TableCell>
-                          <TableCell>{charger.charger_id}</TableCell>
-                          <TableCell>{charger.client?.id}</TableCell>
-                          <TableCell>{formatDate(charger.amc_start)}</TableCell>
-                          <TableCell>{formatDate(charger.amc_end)}</TableCell>
-                          <TableCell>{charger.charger_type}</TableCell>
-                          <TableCell>{formatDate(charger.createdAt)}</TableCell>
-                          <TableCell>{formatDate(charger.updatedAt)}</TableCell>
-                          <TableCell>
-                            <span
-                              className={cn(
-                                "text-xs px-2 py-1 rounded-full",
-                                charger.status === "ACTIVE"
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-red-100 text-red-700"
-                              )}
-                            >
-                              {charger.status}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(charger)}
-                            >
-                              Edit
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))
+                      chargers.map((charger) => {
+                        return (
+                          <TableRow
+                            key={charger.id}
+                            className="hover:bg-muted/50 transition-colors"
+                          >
+                            <TableCell>{charger.id}</TableCell>
+                            <TableCell>{charger.charger_id}</TableCell>
+                            <TableCell>{charger.client?.id}</TableCell>
+                            <TableCell>
+                              {formatDate(charger.amc_start)}
+                            </TableCell>
+                            <TableCell>{formatDate(charger.amc_end)}</TableCell>
+                            <TableCell>{charger.charger_type}</TableCell>
+                            <TableCell>
+                              {formatDate(charger.createdAt)}
+                            </TableCell>
+                            <TableCell>
+                              {formatDate(charger.updatedAt)}
+                            </TableCell>
+                            <TableCell>
+                              <span
+                                className={cn(
+                                  "text-xs px-2 py-1 rounded-full",
+                                  charger.status === "ACTIVE"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-red-100 text-red-700"
+                                )}
+                              >
+                                {charger.status}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleEdit(charger)}
+                              >
+                                Edit
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })
                     ) : (
                       <TableRow>
                         <TableCell
@@ -500,8 +347,8 @@ const ClientPage: React.FC = () => {
               </div>
 
               {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="mt-4 flex justify-center">
+              {pagination?.totalPages > 1 && (
+                <div className="mt-6 flex justify-center">
                   <Pagination>
                     <PaginationContent>
                       <PaginationItem>
@@ -509,40 +356,44 @@ const ClientPage: React.FC = () => {
                           href="#"
                           onClick={(e) => {
                             e.preventDefault();
-                            handlePageChange(currentPage - 1);
+                            if (pagination.page > 1)
+                              dispatch(setPage(pagination.page - 1));
                           }}
                           className={
-                            currentPage === 1
+                            pagination.page === 1
                               ? "pointer-events-none opacity-50"
                               : ""
                           }
                         />
                       </PaginationItem>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                        (page) => (
-                          <PaginationItem key={page}>
-                            <PaginationLink
-                              href="#"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                handlePageChange(page);
-                              }}
-                              isActive={currentPage === page}
-                            >
-                              {page}
-                            </PaginationLink>
-                          </PaginationItem>
-                        )
-                      )}
+                      {Array.from(
+                        { length: pagination.totalPages },
+                        (_, i) => i + 1
+                      ).map((page) => (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              // handlePageChange(page);
+                              dispatch(setPage(page));
+                            }}
+                            isActive={pagination.page === page}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
                       <PaginationItem>
                         <PaginationNext
                           href="#"
                           onClick={(e) => {
                             e.preventDefault();
-                            handlePageChange(currentPage + 1);
+                            if (pagination.page < pagination.totalPages)
+                              dispatch(setPage(pagination.page + 1));
                           }}
                           className={
-                            currentPage === totalPages
+                            pagination.page === pagination.totalPages
                               ? "pointer-events-none opacity-50"
                               : ""
                           }
@@ -552,6 +403,13 @@ const ClientPage: React.FC = () => {
                   </Pagination>
                 </div>
               )}
+
+              <UpdateChargerModal
+                charger={editingCharger}
+                open={isEditModalOpen}
+                onOpenChange={setIsEditModalOpen}
+                onSubmit={handleUpdate}
+              />
             </CardContent>
           </Card>
         </div>

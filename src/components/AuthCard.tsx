@@ -14,7 +14,6 @@ export const AuthCard = () => {
   const {
     register,
     handleSubmit,
-    reset,
     formState: { errors },
   } = useForm();
   const dispatch = useDispatch<AppDispatch>();
