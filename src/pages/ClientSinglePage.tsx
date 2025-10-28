@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BatteryCharging, Plus, Users } from "lucide-react";
+import { BatteryCharging, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import ScrollProgress from "@/components/eldoraui/scrollprogress";
 import { DashboardLayout } from "@/components/SidebarLayout";
@@ -152,7 +152,8 @@ const ClientPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingCharger, setEditingCharger] = useState<Charger | null>(null);0
+  const [editingCharger, setEditingCharger] = useState<Charger | null>(null);
+  0;
   const [chargerId, setChargerId] = useState("");
   const [amcStart, setAmcStart] = useState("");
   const [amcEnd, setAmcEnd] = useState("");
@@ -239,7 +240,6 @@ const ClientPage: React.FC = () => {
   const indexOfFirst = indexOfLast - itemsPerPage;
   const currentChargers = filteredChargers.slice(indexOfFirst, indexOfLast);
 
-  // Handle page change
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
@@ -249,7 +249,6 @@ const ClientPage: React.FC = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingCharger) {
-      // Create new charger
       const maxId = Math.max(...chargers.map((c) => c.id), 0);
       setChargers((prev) => [
         ...prev,
@@ -265,7 +264,6 @@ const ClientPage: React.FC = () => {
         },
       ]);
     } else {
-      // Update existing charger
       setChargers((prev) =>
         prev.map((c) =>
           c.id === editingCharger.id
@@ -315,7 +313,6 @@ const ClientPage: React.FC = () => {
           </CardHeader>
 
           <CardContent className="space-y-6">
-            {/* Client Info Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <Label className="text-muted-foreground">Email</Label>
@@ -401,76 +398,15 @@ const ClientPage: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-        {/* Chargers Section */}
+
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <BatteryCharging className="h-6 w-6 text-gray-600" />
               <h2 className="text-2xl font-bold tracking-tight">Chargers</h2>
             </div>
-            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={() => setEditingCharger(null)}>
-                  <Plus className="mr-2 h-4 w-4" /> Add Charger
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingCharger ? "Edit Charger" : "Create Charger"}
-                  </DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <Label htmlFor="chargerId">Charger ID</Label>
-                    <Input
-                      id="chargerId"
-                      value={chargerId}
-                      onChange={(e) => setChargerId(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="amc_start">AMC Start</Label>
-                    <Input
-                      id="amc_start"
-                      type="date"
-                      value={amcStart}
-                      onChange={(e) => setAmcStart(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="amc_end">AMC End</Label>
-                    <Input
-                      id="amc_end"
-                      type="date"
-                      value={amcEnd}
-                      onChange={(e) => setAmcEnd(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="status">Status</Label>
-                    <Select value={status} onValueChange={setStatus}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ACTIVE">Active</SelectItem>
-                        <SelectItem value="INACTIVE">Inactive</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <DialogFooter>
-                    <Button type="submit">Save</Button>
-                  </DialogFooter>
-                </form>
-              </DialogContent>
-            </Dialog>
           </div>
 
-          {/* Filters and Search */}
           <div className="flex flex-col sm:flex-row gap-4">
             <Input
               placeholder="Search by charger ID..."
@@ -490,7 +426,6 @@ const ClientPage: React.FC = () => {
             </Select>
           </div>
 
-          {/* Chargers Table */}
           <Card className="border-border hover:shadow-elegant transition-shadow animate-fade-in">
             <CardHeader>
               <CardTitle>All Chargers</CardTitle>
@@ -502,8 +437,10 @@ const ClientPage: React.FC = () => {
                     <TableRow>
                       <TableHead>ID</TableHead>
                       <TableHead>Charger ID</TableHead>
+                      <TableHead>Client ID</TableHead>
                       <TableHead>AMC Start</TableHead>
                       <TableHead>AMC End</TableHead>
+                      <TableHead>Type</TableHead>
                       <TableHead>Created On</TableHead>
                       <TableHead>Updated On</TableHead>
                       <TableHead>Status</TableHead>
@@ -511,16 +448,18 @@ const ClientPage: React.FC = () => {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {currentChargers.length > 0 ? (
-                      currentChargers.map((charger) => (
+                    {chargers?.length > 0 ? (
+                      chargers.map((charger) => (
                         <TableRow
                           key={charger.id}
                           className="hover:bg-muted/50 transition-colors"
                         >
                           <TableCell>{charger.id}</TableCell>
                           <TableCell>{charger.charger_id}</TableCell>
+                          <TableCell>{charger.client?.id}</TableCell>
                           <TableCell>{formatDate(charger.amc_start)}</TableCell>
                           <TableCell>{formatDate(charger.amc_end)}</TableCell>
+                          <TableCell>{charger.charger_type}</TableCell>
                           <TableCell>{formatDate(charger.createdAt)}</TableCell>
                           <TableCell>{formatDate(charger.updatedAt)}</TableCell>
                           <TableCell>
@@ -539,10 +478,7 @@ const ClientPage: React.FC = () => {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => {
-                                setEditingCharger(charger);
-                                setDialogOpen(true);
-                              }}
+                              onClick={() => handleEdit(charger)}
                             >
                               Edit
                             </Button>
@@ -552,7 +488,7 @@ const ClientPage: React.FC = () => {
                     ) : (
                       <TableRow>
                         <TableCell
-                          colSpan={8}
+                          colSpan={10}
                           className="text-center text-muted-foreground"
                         >
                           No chargers found
