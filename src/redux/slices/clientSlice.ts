@@ -25,6 +25,8 @@ export interface ClientInterface {
   activeChargers?: number;
   expiringThisMonth?: number;
   addedThisMonth?: number;
+  acChargers?: number;
+  dcChargers?: number;
 }
 
 export interface Charger {
@@ -136,6 +138,7 @@ export const getClientById = createAsyncThunk(
     try {
       const res = await instance.get(`/clients/${data.id}`);
       if (res && res.data) {
+        // console.log("Client data",res.data);
         return res.data.data;
       }
     } catch (error: any) {
@@ -258,6 +261,8 @@ const clientSlice = createSlice({
             activeChargers: data.overview?.chargers?.active || 0,
             expiringThisMonth: data.overview?.chargers?.expiringThisMonth || 0,
             addedThisMonth: data.overview?.chargers?.addedThisMonth || 0,
+            acChargers: data.overview?.chargers?.acChargers,
+            dcChargers: data.overview?.chargers?.dcChargers,
           };
         } else {
           state.client = data;

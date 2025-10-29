@@ -116,7 +116,7 @@ export const getChargersByClientId = createAsyncThunk(
     {
       clientId,
       page = 1,
-      limit = 10,
+      limit = 2,
       search = "",
       status = "All",
     }: {

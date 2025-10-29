@@ -45,6 +45,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import UpdateChargerModal from "@/components/modals/ChargerModal";
 import toast from "react-hot-toast";
+import PaginationComponent from "@/components/PaginationComponent";
 
 const ClientPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -86,7 +87,7 @@ const ClientPage: React.FC = () => {
       dispatch(
         getChargersByClientId({
           page: pagination.page,
-          limit: 10,
+          limit: 1,
           search,
           status,
           clientId,
@@ -175,7 +176,6 @@ const ClientPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Stats Section */}
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
               <Card className="shadow-none border border-muted">
                 <CardHeader className="pb-1">
@@ -184,8 +184,19 @@ const ClientPage: React.FC = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">
-                    {client.totalChargers}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground text-sm">AC</span>
+                      <span className="text-xl font-semibold">
+                        {client.acChargers}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground text-sm">DC</span>
+                      <span className="text-xl font-semibold">
+                        {client.dcChargers}
+                      </span>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -261,7 +272,7 @@ const ClientPage: React.FC = () => {
               <SelectContent>
                 <SelectItem value="All">All</SelectItem>
                 <SelectItem value="ACTIVE">Active</SelectItem>
-                <SelectItem value="EXPIRES">Expired</SelectItem>
+                <SelectItem value="EXPIRED">Expired</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -346,63 +357,13 @@ const ClientPage: React.FC = () => {
                 </Table>
               </div>
 
-              {/* Pagination */}
-              {pagination?.totalPages > 1 && (
-                <div className="mt-6 flex justify-center">
-                  <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (pagination.page > 1)
-                              dispatch(setPage(pagination.page - 1));
-                          }}
-                          className={
-                            pagination.page === 1
-                              ? "pointer-events-none opacity-50"
-                              : ""
-                          }
-                        />
-                      </PaginationItem>
-                      {Array.from(
-                        { length: pagination.totalPages },
-                        (_, i) => i + 1
-                      ).map((page) => (
-                        <PaginationItem key={page}>
-                          <PaginationLink
-                            href="#"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              // handlePageChange(page);
-                              dispatch(setPage(page));
-                            }}
-                            isActive={pagination.page === page}
-                          >
-                            {page}
-                          </PaginationLink>
-                        </PaginationItem>
-                      ))}
-                      <PaginationItem>
-                        <PaginationNext
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (pagination.page < pagination.totalPages)
-                              dispatch(setPage(pagination.page + 1));
-                          }}
-                          className={
-                            pagination.page === pagination.totalPages
-                              ? "pointer-events-none opacity-50"
-                              : ""
-                          }
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
-                </div>
-              )}
+              <PaginationComponent
+                currentPage={pagination.page}
+                totalPages={pagination.totalPages}
+                onPageChange={(page) => {
+                  dispatch(setPage(page));
+                }}
+              />
 
               <UpdateChargerModal
                 charger={editingCharger}

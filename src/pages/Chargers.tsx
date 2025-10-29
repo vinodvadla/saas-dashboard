@@ -20,14 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationLink,
-  PaginationNext,
-  PaginationPrevious,
-} from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "@/redux/store";
@@ -37,10 +29,11 @@ import {
   type Charger,
   updateCharger,
   setStatus,
+  setPage,
 } from "@/redux/slices/chargersSlice";
-import { setPage } from "@/redux/slices/clientSlice";
 import UpdateChargerModal from "@/components/modals/ChargerModal";
 import toast from "react-hot-toast";
+import PaginationComponent from "@/components/PaginationComponent";
 
 const Chargers: React.FC = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -49,8 +42,8 @@ const Chargers: React.FC = () => {
   const { chargers, pagination, search, status } = useSelector(
     (state: RootState) => state.charger
   );
-
   const dispatch = useDispatch<AppDispatch>();
+
 
   const formatDate = (date: string): string => {
     return new Date(date).toLocaleDateString("en-US", {
@@ -58,10 +51,6 @@ const Chargers: React.FC = () => {
       day: "numeric",
       year: "numeric",
     });
-  };
-
-  const handlePageChange = (page: number) => {
-    dispatch(setPage(page));
   };
 
   const handleEdit = (charger: Charger) => {
@@ -74,7 +63,6 @@ const Chargers: React.FC = () => {
       dispatch(updateCharger({ id: editingCharger.id, data: data }))
         .unwrap()
         .then((res) => {
-          console.log("res",res)
           toast.success("Charger updated successfully !");
         })
         .catch((err) => {
@@ -88,13 +76,12 @@ const Chargers: React.FC = () => {
       dispatch(
         fetchChargers({
           page: pagination.page,
-          limit: 10,
+          limit: 2,
           search,
           status,
         })
       );
     }, 500);
-
     return () => {
       clearTimeout(handler);
     };
@@ -204,62 +191,13 @@ const Chargers: React.FC = () => {
               </Table>
             </div>
 
-            {/* Pagination */}
-            {pagination?.totalPages > 1 && (
-              <div className="mt-6 flex justify-center">
-                <Pagination>
-                  <PaginationContent>
-                    <PaginationItem>
-                      <PaginationPrevious
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (pagination.page > 1)
-                            handlePageChange(pagination.page - 1);
-                        }}
-                        className={
-                          pagination.page === 1
-                            ? "pointer-events-none opacity-50"
-                            : ""
-                        }
-                      />
-                    </PaginationItem>
-                    {Array.from(
-                      { length: pagination.totalPages },
-                      (_, i) => i + 1
-                    ).map((page) => (
-                      <PaginationItem key={page}>
-                        <PaginationLink
-                          href="#"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handlePageChange(page);
-                          }}
-                          isActive={pagination.page === page}
-                        >
-                          {page}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
-                    <PaginationItem>
-                      <PaginationNext
-                        href="#"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (pagination.page < pagination.totalPages)
-                            handlePageChange(pagination.page + 1);
-                        }}
-                        className={
-                          pagination.page === pagination.totalPages
-                            ? "pointer-events-none opacity-50"
-                            : ""
-                        }
-                      />
-                    </PaginationItem>
-                  </PaginationContent>
-                </Pagination>
-              </div>
-            )}
+            <PaginationComponent
+              totalPages={pagination.totalPages}
+              currentPage={pagination.page}
+              onPageChange={(page) => {
+                dispatch(setPage(page));
+              }}
+            />
           </CardContent>
         </Card>
 

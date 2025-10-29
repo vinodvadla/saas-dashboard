@@ -172,6 +172,7 @@ const Clients: React.FC = () => {
                       <TableHead>Phone</TableHead>
                       <TableHead>AMC Start</TableHead>
                       <TableHead>AMC End</TableHead>
+                      <TableHead>AMC Hours</TableHead>
                       <TableHead>Created On</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Chargers</TableHead>
@@ -192,6 +193,7 @@ const Clients: React.FC = () => {
                           <TableCell>{client.phone}</TableCell>
                           <TableCell>{formatDate(client.amc_start)}</TableCell>
                           <TableCell>{formatDate(client.amc_end)}</TableCell>
+                          <TableCell>{client.amc_hours}</TableCell>
                           <TableCell>{formatDate(client.createdAt)}</TableCell>
                           <TableCell>
                             <span
